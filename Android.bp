@@ -48,6 +48,7 @@ phony {
 
 cc_library_headers {
     name: "libhidl_gtest_helper",
+    host_supported: true,
     export_include_dirs: ["gtest_helper"],
 }
 
@@ -108,6 +109,7 @@ cc_library {
         "libhwbinder-impl-internal",
     ],
     min_sdk_version: "29",
+    afdo: true,
 }
 
 // WARNING: deprecated
