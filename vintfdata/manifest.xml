@@ -58,7 +58,7 @@
             <instance>default</instance>
         </interface>
     </hal>
-    <hal>
+    <hal max-level="7">
         <name>android.system.net.netd</name>
         <transport>hwbinder</transport>
         <version>1.1</version>
