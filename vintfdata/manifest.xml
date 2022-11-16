@@ -1,5 +1,5 @@
 <manifest version="1.0" type="framework">
-    <hal>
+    <hal format="hidl">
         <name>android.hidl.memory</name>
         <transport arch="32+64">passthrough</transport>
         <version>1.0</version>
@@ -8,7 +8,7 @@
             <instance>ashmem</instance>
         </interface>
     </hal>
-    <hal max-level="6">
+    <hal format="hidl" max-level="6">
         <name>android.frameworks.displayservice</name>
         <transport>hwbinder</transport>
         <version>1.0</version>
@@ -22,7 +22,7 @@
         `ioprio <class> <priority>`. For more information, see
         system/core/init/README.md
     -->
-    <hal max-level="5">
+    <hal format="hidl" max-level="5">
         <name>android.frameworks.schedulerservice</name>
         <transport>hwbinder</transport>
         <version>1.0</version>
@@ -31,7 +31,7 @@
             <instance>default</instance>
         </interface>
     </hal>
-    <hal>
+    <hal format="hidl">
         <name>android.frameworks.sensorservice</name>
         <transport>hwbinder</transport>
         <version>1.0</version>
@@ -40,7 +40,7 @@
             <instance>default</instance>
         </interface>
     </hal>
-    <hal max-level="7">
+    <hal format="hidl" max-level="7">
         <name>android.system.net.netd</name>
         <transport>hwbinder</transport>
         <version>1.1</version>
@@ -49,7 +49,7 @@
             <instance>default</instance>
         </interface>
     </hal>
-    <hal>
+    <hal format="hidl">
         <name>android.system.wifi.keystore</name>
         <transport>hwbinder</transport>
         <version>1.0</version>
