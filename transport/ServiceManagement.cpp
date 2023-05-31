@@ -210,7 +210,8 @@ static bool isServiceManager(const hidl_string& fqName) {
            fqName == IServiceManager1_2::descriptor;
 }
 static bool isHwServiceManagerInstalled() {
-    return access("/system/bin/hwservicemanager", F_OK) == 0;
+    return access("/system_ext/bin/hwservicemanager", F_OK) == 0 ||
+           access("/system/system_ext/bin/hwservicemanager", F_OK) == 0;
 }
 
 /*
