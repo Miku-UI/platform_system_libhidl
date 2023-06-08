@@ -240,7 +240,7 @@ struct NoHwServiceManager : public IServiceManager1_2 {
     Return<Transport> getTransport(const hidl_string& fqName, const hidl_string& name) {
         LOG(INFO) << "Trying to get transport of " << fqName << "/" << name
                   << " without hwservicemanager";
-        return Transport::PASSTHROUGH;
+        return Transport::EMPTY;
     }
 
     Return<void> list(list_cb _hidl_cb) override {
