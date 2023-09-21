@@ -210,7 +210,9 @@ static bool isServiceManager(const hidl_string& fqName) {
            fqName == IServiceManager1_2::descriptor;
 }
 static bool isHwServiceManagerInstalled() {
-    return access("/system/bin/hwservicemanager", F_OK) == 0;
+    return access("/system_ext/bin/hwservicemanager", F_OK) == 0 ||
+           access("/system/system_ext/bin/hwservicemanager", F_OK) == 0 ||
+           access("/system/bin/hwservicemanager", F_OK) == 0;
 }
 
 /*
@@ -323,6 +325,11 @@ sp<IServiceManager1_2> defaultServiceManager1_2() {
 
         if (!isHwServiceManagerInstalled()) {
             // hwservicemanager is not available on this device.
+            LOG(WARNING)
+                    << "hwservicemanager is not installed on the device. If HIDL support "
+                    << "is still needed, hwservicemanager and android.hidl.allocator@1.0-service "
+                    << "need to be added to the device's PRODUCT_PACKAGES and the kernel config "
+                    << "needs to have 'hwbinder' in CONFIG_ANDROID_BINDER_DEVICES.";
             gDefaultServiceManager = sp<NoHwServiceManager>::make();
             return gDefaultServiceManager;
         }
