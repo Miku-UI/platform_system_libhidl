@@ -101,6 +101,7 @@ cc_library {
         "com.android.btservices",
         "com.android.media",
         "com.android.media.swcodec",
+        "com.android.nfcservices",
         "com.android.tethering",
     ],
     vndk: {
