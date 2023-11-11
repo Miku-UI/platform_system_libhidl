@@ -24,3 +24,8 @@ package {
 hidl_package_root {
     name: "android.hidl",
 }
+
+filegroup {
+    name: "checked_in_hidl_current",
+    srcs: ["current.txt"],
+}
