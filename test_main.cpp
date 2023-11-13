@@ -23,6 +23,10 @@
 #pragma clang diagnostic pop
 
 #include <android-base/logging.h>
+#include <android-base/properties.h>
+#ifdef __ANDROID__
+#include <android/api-level.h>
+#endif
 #include <android/hidl/memory/1.0/IMemory.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -32,12 +36,6 @@
 #include <condition_variable>
 #include <fstream>
 #include <vector>
-
-#ifdef __ANDROID__
-static bool kAndroid = true;
-#else
-static bool kAndroid = false;
-#endif
 
 #define EXPECT_ARRAYEQ(__a1__, __a2__, __size__) EXPECT_TRUE(isArrayEqual(__a1__, __a2__, __size__))
 #define EXPECT_2DARRAYEQ(__a1__, __a2__, __size1__, __size2__) \
@@ -633,18 +631,26 @@ TEST_F(LibHidlTest, StatusStringTest) {
 TEST_F(LibHidlTest, PreloadTest) {
     // HIDL doesn't have support to load passthrough implementations on host, but we
     // could do this by loading implementations from the output directory
-    if (!kAndroid) GTEST_SKIP();
-
+#ifndef __ANDROID__
+    GTEST_SKIP();
+#else
     using ::android::hardware::preloadPassthroughService;
     using ::android::hidl::memory::V1_0::IMemory;
 
-    // installed on all devices by default in both bitnesses and not otherwise a dependency of this
+    // android.hidl.memory@1.0-impl.so is installed on all devices by default up
+    // to Android U in both bitnesses and not otherwise a dependency of this
     // test.
+    // Android V+ devices do not have this installed by default, so skip the
+    // test.
+    if (android::base::GetIntProperty("ro.vendor.api_level", 0) >= __ANDROID_API_V__) {
+        GTEST_SKIP();
+    }
     static const std::string kLib = "android.hidl.memory@1.0-impl.so";
 
     EXPECT_FALSE(isLibraryOpen(kLib));
     preloadPassthroughService<IMemory>();
     EXPECT_TRUE(isLibraryOpen(kLib));
+#endif
 }
 
 template <typename T, size_t start, size_t end>
