@@ -1,5 +1,5 @@
 <manifest version="1.0" type="framework">
-    <hal format="hidl">
+    <hal format="hidl" max-level="8">
         <name>android.hidl.memory</name>
         <transport arch="32+64">passthrough</transport>
         <version>1.0</version>
