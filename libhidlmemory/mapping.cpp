@@ -19,6 +19,7 @@
 #include <mutex>
 #include <string>
 
+#include <AshmemMemory.h>
 #include <hidlmemory/mapping.h>
 
 #include <android-base/logging.h>
@@ -35,6 +36,33 @@ namespace hardware {
 
 static std::map<std::string, sp<IMapper>> gMappersByName;
 static std::mutex gMutex;
+static std::once_flag gOnceFlagLog;
+
+static sp<IMemory> createAshmemMemory(const hidl_memory& mem) {
+    if (mem.handle()->numFds == 0) {
+        return nullptr;
+    }
+
+    // If ashmem service runs in 32-bit (size_t is uint32_t) and a 64-bit
+    // client process requests a memory > 2^32 bytes, the size would be
+    // converted to a 32-bit number in mmap. mmap could succeed but the
+    // mapped memory's actual size would be smaller than the reported size.
+    if (mem.size() > SIZE_MAX) {
+        ALOGE("Cannot map %" PRIu64 " bytes of memory because it is too large.", mem.size());
+        android_errorWriteLog(0x534e4554, "79376389");
+        return nullptr;
+    }
+
+    int fd = mem.handle()->data[0];
+    void* data = mmap(0, mem.size(), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if (data == MAP_FAILED) {
+        // mmap never maps at address zero without MAP_FIXED, so we can avoid
+        // exposing clients to MAP_FAILED.
+        return nullptr;
+    }
+
+    return new impl::AshmemMemory(mem, data);
+}
 
 static inline sp<IMapper> getMapperService(const std::string& name) {
     std::unique_lock<std::mutex> _lock(gMutex);
@@ -55,8 +83,14 @@ sp<IMemory> mapMemory(const hidl_memory& memory) {
     sp<IMapper> mapper = getMapperService(memory.name());
 
     if (mapper == nullptr) {
-        LOG(ERROR) << "Could not fetch mapper for " << memory.name() << " shared memory";
-        return nullptr;
+        if (memory.name() == "ashmem") {
+            std::call_once(gOnceFlagLog,
+                           [&]() { LOG(INFO) << "Using libhidlmemory mapper for ashmem."; });
+            return createAshmemMemory(memory);
+        } else {
+            LOG(ERROR) << "Could not fetch mapper for " << memory.name() << " shared memory";
+            return nullptr;
+        }
     }
 
     if (mapper->isRemote()) {
