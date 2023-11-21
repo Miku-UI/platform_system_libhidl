@@ -155,7 +155,9 @@ class VtsHalBaseV1_0TargetTest : public ::testing::Test {
             }
         }));
 
-        ASSERT_FALSE(all_hals_.empty());  // sanity
+        if (all_hals_.empty()) {
+            GTEST_SKIP() << "No HIDL HAls on this device.";
+        }
     }
 
     void EachHal(const std::function<void(const Hal&)>& check) {
