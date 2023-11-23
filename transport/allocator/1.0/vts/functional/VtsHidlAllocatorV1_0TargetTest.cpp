@@ -122,6 +122,7 @@ TEST_P(AllocatorHidlTest, TestCommit) {
     }
 }
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(AllocatorHidlTest);
 INSTANTIATE_TEST_SUITE_P(
         PerInstance, AllocatorHidlTest,
         testing::ValuesIn(android::hardware::getAllHalInstanceNames(IAllocator::descriptor)),
