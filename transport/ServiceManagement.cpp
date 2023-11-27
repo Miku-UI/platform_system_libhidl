@@ -17,6 +17,7 @@
 #define LOG_TAG "HidlServiceManagement"
 
 #ifdef __ANDROID__
+#include <android/api-level.h>
 #include <android/dlext.h>
 #endif  // __ANDROID__
 
@@ -209,10 +210,21 @@ static bool isServiceManager(const hidl_string& fqName) {
     return fqName == IServiceManager1_0::descriptor || fqName == IServiceManager1_1::descriptor ||
            fqName == IServiceManager1_2::descriptor;
 }
-static bool isHwServiceManagerInstalled() {
-    return access("/system_ext/bin/hwservicemanager", F_OK) == 0 ||
-           access("/system/system_ext/bin/hwservicemanager", F_OK) == 0 ||
-           access("/system/bin/hwservicemanager", F_OK) == 0;
+
+bool isHidlSupported() {
+#ifdef __ANDROID__
+    // TODO(b/218588089) remove this temporary support variable once Cuttlefish
+    // (the only current Android V launching device) no longer requires HIDL.
+    constexpr bool kTempHidlSupport = true;
+    static const char* kVendorApiProperty = "ro.vendor.api_level";
+    // HIDL and hwservicemanager are not supported in Android V+
+    return android::base::GetIntProperty(kVendorApiProperty, 0) < __ANDROID_API_V__ ||
+           kTempHidlSupport;
+#else
+    // No access to properties and no requirement for dropping HIDL support if
+    // this isn't Android
+    return true;
+#endif  // __ANDROID__
 }
 
 /*
@@ -323,13 +335,9 @@ sp<IServiceManager1_2> defaultServiceManager1_2() {
             return gDefaultServiceManager;
         }
 
-        if (!isHwServiceManagerInstalled()) {
+        if (!isHidlSupported()) {
             // hwservicemanager is not available on this device.
-            LOG(WARNING)
-                    << "hwservicemanager is not installed on the device. If HIDL support "
-                    << "is still needed, hwservicemanager and android.hidl.allocator@1.0-service "
-                    << "need to be added to the device's PRODUCT_PACKAGES and the kernel config "
-                    << "needs to have 'hwbinder' in CONFIG_ANDROID_BINDER_DEVICES.";
+            LOG(WARNING) << "hwservicemanager is not supported on the device.";
             gDefaultServiceManager = sp<NoHwServiceManager>::make();
             return gDefaultServiceManager;
         }
@@ -533,7 +541,7 @@ struct PassthroughServiceManager : IServiceManager1_1 {
         // This is required to run without hwservicemanager while we have
         // passthrough HIDL services. Once the passthrough HIDL services have
         // been removed, the PassthroughServiceManager will no longer be needed.
-        if (!isHwServiceManagerInstalled() && isServiceManager(fqName)) {
+        if (!isHidlSupported() && isServiceManager(fqName)) {
             return defaultServiceManager1_2();
         }
 
