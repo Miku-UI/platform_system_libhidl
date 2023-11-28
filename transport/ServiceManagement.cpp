@@ -252,6 +252,12 @@ struct NoHwServiceManager : public IServiceManager1_2 {
     }
 
     Return<Transport> getTransport(const hidl_string& fqName, const hidl_string& name) {
+        // We pretend like IServiceManager is declared for
+        // IServiceManager::getService to return this NoHwServiceManager
+        // instance
+        if (isServiceManager(fqName)) {
+            return Transport::HWBINDER;
+        }
         LOG(INFO) << "Trying to get transport of " << fqName << "/" << name
                   << " without hwservicemanager";
         return Transport::EMPTY;
