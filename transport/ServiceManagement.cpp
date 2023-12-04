@@ -211,7 +211,16 @@ static bool isServiceManager(const hidl_string& fqName) {
            fqName == IServiceManager1_2::descriptor;
 }
 
+static bool isHwServiceManagerInstalled() {
+    return access("/system_ext/bin/hwservicemanager", F_OK) == 0 ||
+           access("/system/system_ext/bin/hwservicemanager", F_OK) == 0 ||
+           access("/system/bin/hwservicemanager", F_OK) == 0;
+}
+
 bool isHidlSupported() {
+    if (!isHwServiceManagerInstalled()) {
+        return false;
+    }
 #ifdef __ANDROID__
     // TODO(b/218588089) remove this temporary support variable once Cuttlefish
     // (the only current Android V launching device) no longer requires HIDL.
