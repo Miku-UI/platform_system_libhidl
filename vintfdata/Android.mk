@@ -57,7 +57,13 @@ LOCAL_MODULE_PATH   := $(TARGET_OUT_VENDOR)/etc/vintf
 
 GEN := $(local-generated-sources-dir)/compatibility_matrix.xml
 
+# VNDK is no longer a dependency for vendor version 35 and beyond
+$(GEN): PRIVATE_VINTF_VNDK_VERSION :=
+ifeq ($(call math_is_number,$(VINTF_VNDK_VERSION)),true)
+ifeq ($(call math_lt_or_eq,$(VINTF_VNDK_VERSION),34),true)
 $(GEN): PRIVATE_VINTF_VNDK_VERSION := $(VINTF_VNDK_VERSION)
+endif
+endif
 $(GEN): PRIVATE_DEVICE_MATRIX_INPUT_FILE := $(DEVICE_MATRIX_INPUT_FILE)
 $(GEN): $(DEVICE_MATRIX_INPUT_FILE) $(HOST_OUT_EXECUTABLES)/assemble_vintf
 	REQUIRED_VNDK_VERSION=$(PRIVATE_VINTF_VNDK_VERSION) \
